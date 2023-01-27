@@ -36,6 +36,7 @@ smartquotes = True
 def setup(app):
 	from docutils import nodes
 	from docutils.nodes import Element, Node, Text
+	from docutils.parsers.rst import Directive, directives
 
 	from sphinx.application import Sphinx
 	from sphinx.environment import BuildEnvironment
@@ -46,6 +47,13 @@ def setup(app):
 	from sphinx.builders.html import StandaloneHTMLBuilder
 
 	logger = logging.getLogger(__name__)
+
+	class SectionDirective(Directive):
+		has_content = True
+		required_arguments = 0
+
+		def run(self):
+			return []
 
 	class CustomBuilder(StandaloneHTMLBuilder):
 		def __init__(self, app: Sphinx, env: BuildEnvironment = None) -> None:
@@ -67,43 +75,50 @@ def setup(app):
 		# needed HTML at the end...
 		
 		def visit_desc(self, node: Element) -> None:
-			logger.warning('=> desc')
+			return
 		
 		def depart_desc(self, node: Element) -> None:
-			logger.warning('<= desc')
+			return
 		
 		def visit_desc_signature(self, node: Element) -> None:
-			logger.warning('=> desc_signature')
 			self.signature_node = node
 		
 		def depart_desc_signature(self, node: Element) -> None:
-			logger.warning('<= desc_signature')
 			self.signature_node = None
 		
 		def visit_desc_signature_line(self, node: Element) -> None:
-			logger.warning('=> signature_line')
+			return
 		
 		# Okay, this is mostly working... however, we're terminating
 		# too early... this is where the new nodes are needed to
 		# delineate an API section, and write the HTML there instead...
 		def depart_desc_signature_line(self, node: Element) -> None:
-			logger.warning('<= signature line')
-			self.body.append(self.starttag(self.signature_node, 'h3'))
-			# this is where we should be able to collect all the
-			# names and generate a single header
-			for child in self.signature_names:
-				logger.warning(child)
-				logger.warning(child[0])
-				logger.warning(child[0].children)
-				logger.warning(''.join(str(c) for c in child[0].children))
-				self.body.append(''.join(str(c) for c in child[0].children))
-			self.body.append('</h3>\n\n')
+			return
 		
 		def visit_desc_name(self, node: Element) -> None:
-			logger.warn(node)
 			self.signature_names.append(node)
 		
 		def depart_desc_name(self, node: Element) -> None:
-			logger.warning('<= desc name')
+			return
+		
+		def visit_section(self, node: Element) -> None:
+			logger.warn('start section')
+		
+		def depart_section(self, node: Element) -> None:
+			logger.warn('end section')
+			#self.body.append(self.starttag(self.signature_node, 'h3'))
+			# we don't have the IDs here...
+			self.body.append(self.starttag(node, 'h3'))
+			
+			# this is where we should be able to collect all the
+			# names and generate a single header
+			names = []
+			for child in self.signature_names:
+				names.append(''.join(str(c) for c in child[0].children))
+			self.body.append(', '.join(names))
 
+			self.signature_names = []
+			self.body.append('</h3>\n\n')
+
+	app.add_directive('section', SectionDirective)
 	app.set_translator('html', CustomHTMLTranslator, True)

@@ -2,7 +2,7 @@
 
 ## Data Members
 
-:::{api:section}
+:::{section}
 ---
 members:
  - uint32 BMessage::what
@@ -13,7 +13,7 @@ A coded constant that captures what the message is about.
 
 ## Member Functions
 
-:::{api:section}
+:::{section}
 ---
 functions:
  - status_t BMessage::GetCurrentSpecifier(int32* index, BMessage* specifier = NULL,
