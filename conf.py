@@ -7,6 +7,7 @@ release = '0.1'
 
 extensions = [
 	'myst_parser',
+	'custom'
 ]
 
 myst_enable_extensions = [
@@ -33,9 +34,16 @@ html_static_path = ['_static']
 
 smartquotes = True
 
+import sys, os
+
+sys.path.append(os.path.abspath('.'))
+
+from docutils.nodes import Element, Node, Text
+
+from custom import startsection, endsection
+
 def setup(app):
 	from docutils import nodes
-	from docutils.nodes import Element, Node, Text
 	from docutils.parsers.rst import Directive, directives
 
 	from sphinx.application import Sphinx
@@ -48,12 +56,30 @@ def setup(app):
 
 	logger = logging.getLogger(__name__)
 
+	class StartSectionDirective(Directive):
+		has_content = True
+		required_arguments = 0
+
+		def run(self):
+			logger.warn('need to do something here...')
+			# need to generate an element of some type...
+			# and we can't pickle from the conf.py file...
+			return [startsection('')]
+	
 	class SectionDirective(Directive):
 		has_content = True
 		required_arguments = 0
 
 		def run(self):
 			return []
+	
+	class EndSectionDirective(Directive):
+		has_content = True
+		required_arguments = 0
+
+		def run(self):
+			logger.warning('end section directive')
+			return [endsection('')]
 
 	class CustomBuilder(StandaloneHTMLBuilder):
 		def __init__(self, app: Sphinx, env: BuildEnvironment = None) -> None:
@@ -69,11 +95,11 @@ def setup(app):
 
 			self.signature_node = None
 			self.signature_names = []
-		
+
 		# The overarching goal is to be able to collect the descriptions,
 		# and store them in the context, then later generate the actual
 		# needed HTML at the end...
-		
+
 		def visit_desc(self, node: Element) -> None:
 			return
 		
@@ -96,15 +122,31 @@ def setup(app):
 			return
 		
 		def visit_desc_name(self, node: Element) -> None:
+			logger.warn('desc_name')
 			self.signature_names.append(node)
+			logger.warn(self.signature_names)
 		
 		def depart_desc_name(self, node: Element) -> None:
 			return
 		
-		def visit_section(self, node: Element) -> None:
-			logger.warn('start section')
+		def visit_section(self, node):
+			logger.warn('section')
 		
-		def depart_section(self, node: Element) -> None:
+		def depart_section(self, node):
+			logger.warn('leave section')
+		
+		def visit_startsection(self, node: Element) -> None:
+			logger.warn('start section')
+			logger.warn(self.signature_names)
+			self.signature_names = []
+		
+		def depart_startsection(self, node: Element) -> None:
+			logger.warning('depart start section')
+		
+		def visit_endsection(self, node: Element) -> None:
+			logger.warning('visit end section')
+		
+		def depart_endsection(self, node: Element) -> None:
 			logger.warn('end section')
 			#self.body.append(self.starttag(self.signature_node, 'h3'))
 			# we don't have the IDs here...
@@ -116,9 +158,12 @@ def setup(app):
 			for child in self.signature_names:
 				names.append(''.join(str(c) for c in child[0].children))
 			self.body.append(', '.join(names))
+			logger.warn(', '.join(names))
 
-			self.signature_names = []
+			#self.signature_names = []
 			self.body.append('</h3>\n\n')
 
-	app.add_directive('section', SectionDirective)
+	#app.add_directive('section', SectionDirective)
+	app.add_directive('start-section', StartSectionDirective)
+	app.add_directive('end-section', EndSectionDirective)
 	app.set_translator('html', CustomHTMLTranslator, True)

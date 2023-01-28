@@ -2,24 +2,21 @@
 
 ## Data Members
 
-:::{section}
----
-members:
- - uint32 BMessage::what
----
+```{start-section}
+```
 
 A coded constant that captures what the message is about.
+
+:::{cpp:member} uint32 BMessage::what
 :::
+
+```{end-section}
+```
 
 ## Member Functions
 
-:::{section}
----
-functions:
- - status_t BMessage::GetCurrentSpecifier(int32* index, BMessage* specifier = NULL,
-        int32* what = NULL, const char** property = NULL) const
- - status_t BMessage::PopSpecifier()
----
+```{start-section}
+```
 
 `GetCurrentSpecifier()` unpacks the current specifier in the `BMessage`, the one at the top of the
 specifier stack; `PopSpecifer()` changes the notion of which specifier is current, by popping the
@@ -28,93 +25,11 @@ current one from the stack.
 These functions aid in implementing a class-specific version of {cpp:class}`BHandler`'s
 {cpp:func}`~BHandler::ResolveSpecifier()` function---the first gets the specifier that needs to be
 resolved, and the second pops it from the stack....
+
+:::{cpp:function} status_t BMessage::AddData(const char* name, type_code type, const void* data, ssize_t numBytes, bool fixedSize = true, int32 numItems = 1)
 :::
 
-```{cpp:function} status_t BMessage::AddData(const char* name, type_code type, const void* data, ssize_t numBytes, bool fixedSize = true, int32 numItems = 1)
-```
-:::{code} cpp
-status_t AddData(const char* name,
-                type_code type,
-                const void* data,
-                ssize_t numBytes,
-                bool fixedSize = true,
-                int32 numItems = 1);
-:::
-```{cpp:function} status_t BMessage::BMessage::AddBool(const char* name, bool aBool)
-```
-:::{code} cpp
-status_t AddBool(const char* name, bool aBool);
-:::
-```{cpp:function} BMessage::AddInt8()
-```
-:::{code} cpp
-status_t AddInt8(const char* name, int8 anInt8);
-:::
-```{cpp:function} BMessage::AddInt16()
-```
-:::{code} cpp
-status_t AddInt16(const char* name, int16 anInt16);
-:::
-```{cpp:function} BMessage::AddInt32()
-```
-:::{code} cpp
-status_t AddInt32(const char* name, int32 anInt32);
-:::
-```{cpp:function} BMessage::AddInt64()
-```
-:::{code} cpp
-status_t AddInt64(const char* name, int64 anInt64);
-:::
-```{cpp:function} BMessage::AddFloat()
-```
-:::{code} cpp
-status_t AddFloat(const char* name, float anloat);
-:::
-```{cpp:function} BMessage::AddDouble()
-```
-:::{code} cpp
-status_t AddDouble(const char* name, double aDouble);
-:::
-```{cpp:function} BMessage::AddString()
-```
-:::{code} cpp
-status_t AddString(const char* name, const char *string);
-status_t AddString(const char* name, const BString string);
-:::
-```{cpp:function} BMessage::AddPoint()
-```
-:::{code} cpp
-status_t AddPoint(const char* name, BPoint point);
-:::
-```{cpp:function} BMessage::AddRect()
-```
-:::{code} cpp
-status_t AddRect(const char* name, BRect rect);
-:::
-```{cpp:function} BMessage::AddRef()
-```
-:::{code} cpp
-status_t AddRef(const char* name, const entry_ref* ref);
-:::
-```{cpp:function} BMessage::AddMessage()
-```
-:::{code} cpp
-status_t AddMessage(const char* name, const BMessage* message);
-:::
-```{cpp:function} BMessage::AddMessenger()
-```
-:::{code} cpp
-status_t AddMessenger(const char* name, BMessenger messenger);
-:::
-```{cpp:function} BMessage::AddPointer()
-```
-:::{code} cpp
-status_t AddPointer(const char* name, const void* pointer);
-:::
-```{cpp:function} BMessage::AddFlat()
-```
-:::{code} cpp
-status_t AddFlat(const char* name, BFlattenable* object, int32 numItems = 1);
+:::{cpp:function} status_t BMessage::BMessage::AddBool(const char* name, bool aBool)
 :::
 
 These functions add data to the field named `name` and assign a data type to the field. Field names
@@ -176,3 +91,5 @@ refer to it in the message.
 
 See also: {cpp:func}`~BMessage::FindData()`, {cpp:func}`~BMessage::GetInfo()`
 
+```{end-section}
+```
