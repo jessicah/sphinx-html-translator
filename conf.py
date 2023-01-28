@@ -7,7 +7,6 @@ release = '0.1'
 
 extensions = [
 	'myst_parser',
-	'custom'
 ]
 
 myst_enable_extensions = [
@@ -40,7 +39,7 @@ sys.path.append(os.path.abspath('.'))
 
 from docutils.nodes import Element, Node, Text
 
-from custom import startsection, endsection
+from custom import startsection, endsection, abigroup
 
 def setup(app):
 	from docutils import nodes
@@ -56,30 +55,16 @@ def setup(app):
 
 	logger = logging.getLogger(__name__)
 
-	class StartSectionDirective(Directive):
+	class AbiGroupDirective(Directive):
 		has_content = True
 		required_arguments = 0
 
 		def run(self):
-			logger.warn('need to do something here...')
-			# need to generate an element of some type...
-			# and we can't pickle from the conf.py file...
-			return [startsection('')]
-	
-	class SectionDirective(Directive):
-		has_content = True
-		required_arguments = 0
-
-		def run(self):
-			return []
-	
-	class EndSectionDirective(Directive):
-		has_content = True
-		required_arguments = 0
-
-		def run(self):
-			logger.warning('end section directive')
-			return [endsection('')]
+			text = '\n'.join(self.content)
+			node = abigroup(text)
+			self.add_name(node)
+			self.state.nested_parse(self.content, self.content_offset, node)
+			return [node]
 
 	class CustomBuilder(StandaloneHTMLBuilder):
 		def __init__(self, app: Sphinx, env: BuildEnvironment = None) -> None:
@@ -93,7 +78,7 @@ def setup(app):
 		def __init__(self, document: nodes.document, builder: Builder) -> None:
 			super().__init__(document, builder)
 
-			self.signature_node = None
+			self.signature_ids = []
 			self.signature_names = []
 
 		# The overarching goal is to be able to collect the descriptions,
@@ -107,18 +92,17 @@ def setup(app):
 			return
 		
 		def visit_desc_signature(self, node: Element) -> None:
-			self.signature_node = node
+			self.signature_ids += node.attributes['ids']
 		
 		def depart_desc_signature(self, node: Element) -> None:
-			self.signature_node = None
+			return
 		
 		def visit_desc_signature_line(self, node: Element) -> None:
 			return
 		
-		# Okay, this is mostly working... however, we're terminating
-		# too early... this is where the new nodes are needed to
-		# delineate an API section, and write the HTML there instead...
 		def depart_desc_signature_line(self, node: Element) -> None:
+			# we still want to capture the entire signature line,
+			# and generate similar HTML as the original HTMLTranslator
 			return
 		
 		def visit_desc_name(self, node: Element) -> None:
@@ -148,22 +132,30 @@ def setup(app):
 		
 		def depart_endsection(self, node: Element) -> None:
 			logger.warn('end section')
-			#self.body.append(self.starttag(self.signature_node, 'h3'))
-			# we don't have the IDs here...
-			self.body.append(self.starttag(node, 'h3'))
+		
+		def visit_abigroup(self, node):
+			self.signature_names = []
+			self.current_body = self.body
+			self.body = []
+		
+		def depart_abigroup(self, node):
+			logger.warn('depart abigroup')
+			# this isn't quite what we want... we want to grab
+			# the IDs from the `desc_signature`
+			node.attributes['ids'] = self.signature_ids
+			self.signature_ids = []
+			text = self.starttag(node, 'h3')
 			
-			# this is where we should be able to collect all the
-			# names and generate a single header
 			names = []
 			for child in self.signature_names:
 				names.append(''.join(str(c) for c in child[0].children))
-			self.body.append(', '.join(names))
+			text += ', '.join(names)
 			logger.warn(', '.join(names))
+			text += '</h3>\n\n'
 
-			#self.signature_names = []
-			self.body.append('</h3>\n\n')
+			self.body = self.current_body + [text] + self.body
 
-	#app.add_directive('section', SectionDirective)
-	app.add_directive('start-section', StartSectionDirective)
-	app.add_directive('end-section', EndSectionDirective)
+			self.signature_names = []
+
+	app.add_directive('abi-group', AbiGroupDirective)
 	app.set_translator('html', CustomHTMLTranslator, True)

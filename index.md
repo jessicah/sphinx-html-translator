@@ -2,21 +2,24 @@
 
 ## Data Members
 
-```{start-section}
-```
-
-A coded constant that captures what the message is about.
+::::{abi-group}
 
 :::{cpp:member} uint32 BMessage::what
 :::
 
-```{end-section}
-```
+A coded constant that captures what the message is about.
+
+::::
 
 ## Member Functions
 
-```{start-section}
-```
+::::{abi-group}
+
+:::{cpp:function} status_t BMessage::AddData(const char* name, type_code type, const void* data, ssize_t numBytes, bool fixedSize = true, int32 numItems = 1)
+:::
+
+:::{cpp:function} status_t BMessage::BMessage::AddBool(const char* name, bool aBool)
+:::
 
 `GetCurrentSpecifier()` unpacks the current specifier in the `BMessage`, the one at the top of the
 specifier stack; `PopSpecifer()` changes the notion of which specifier is current, by popping the
@@ -26,19 +29,13 @@ These functions aid in implementing a class-specific version of {cpp:class}`BHan
 {cpp:func}`~BHandler::ResolveSpecifier()` function---the first gets the specifier that needs to be
 resolved, and the second pops it from the stack....
 
-:::{cpp:function} status_t BMessage::AddData(const char* name, type_code type, const void* data, ssize_t numBytes, bool fixedSize = true, int32 numItems = 1)
-:::
-
-:::{cpp:function} status_t BMessage::BMessage::AddBool(const char* name, bool aBool)
-:::
-
 These functions add data to the field named `name` and assign a data type to the field. Field names
 can be no longer than 255 characters. If more than one item of data is added under the same name,
 the `BMessage` creates an array of data for that name. Each time you add another value (to the same
 name), the value is added to the end of the array---you can't add a value at a specific index. A
 given field can only store one type of data.
 
-`AddData()` copies `numBytes` of `data` into the field, and assigns the data a `type` code. It
+{cpp:func}`~BMessage::AddData()` copies `numBytes` of `data` into the field, and assigns the data a `type` code. It
 copies whatever the `data` pointer points to. For example, if you want to add a string of characters
 to the message, `data` should be the string pointer (`char*`). If you want to add only the string
 pointer, not the characters themselves, `data` should be a pointer to the pointer (`char**`). The
@@ -90,6 +87,4 @@ information in a common location (a file, a private clipboard, a shared area of 
 refer to it in the message.
 
 See also: {cpp:func}`~BMessage::FindData()`, {cpp:func}`~BMessage::GetInfo()`
-
-```{end-section}
-```
+::::
